@@ -1,6 +1,7 @@
 # Assetto Corsa Basic Information Board (ACBIB)
 
 import ac
+import math
 import app.acbib as acbib
 
 # global settings
@@ -123,63 +124,54 @@ def acUpdate(deltaT):
 def glRender(deltaT):
     # delta
 
-    delta = acbib.ACLAP.getLapDelta() * 10
+    acbib.GL.rect(APP_WIDTH / 2 - 100, 120, 200, 10, acbib.Color(1, 1, 1, 1), False)
+    acbib.GL.line(APP_WIDTH / 2, 120, APP_WIDTH / 2, 130, acbib.Color(1, 1, 1, 1))
 
-    ac.glColor4f(1, 1, 1, 1)
-    ac.glBegin(1)
-    ac.glVertex2f(APP_WIDTH / 2 - 100, 120)
-    ac.glVertex2f(APP_WIDTH / 2 + 100, 120)
-    ac.glVertex2f(APP_WIDTH / 2 + 100, 120)
-    ac.glVertex2f(APP_WIDTH / 2 + 100, 130)
-    ac.glVertex2f(APP_WIDTH / 2 + 100, 130)
-    ac.glVertex2f(APP_WIDTH / 2 - 100, 130)
-    ac.glVertex2f(APP_WIDTH / 2 - 100, 130)
-    ac.glVertex2f(APP_WIDTH / 2 - 100, 120)
-    ac.glVertex2f(APP_WIDTH / 2, 120)
-    ac.glVertex2f(APP_WIDTH / 2, 130)
-    ac.glEnd()
+    delta = acbib.ACLAP.getLapDelta()
+    d = 0
+    if delta != 0:
+        d = max(abs(delta), 10 * math.log10(abs(delta))) * 10
 
     if delta > 0:
-        ac.glColor4f(0.9, 0, 0, 1)
-        ac.glQuad(APP_WIDTH / 2 - min(delta * -1, 99), 120, min(delta * -1, 99), 9)
-    else:
-        ac.glColor4f(0, 0.9, 0, 1)
-        ac.glQuad(APP_WIDTH / 2 + 1, 120, min(delta, 99), 9)
+        acbib.GL.rect(APP_WIDTH / 2 - (min(d, 99) + 1), 120, min(d, 99), 9, acbib.Color(0.9, 0, 0, 1))
+    elif delta < 0:
+        acbib.GL.rect(APP_WIDTH / 2, 120, min(d, 99), 9, acbib.Color(0, 0.9, 0, 1))
 
     # shifting
 
     rpm_max = acbib.ACCAR.getRPMMax()
     rpm = acbib.ACCAR.getRPM()
     progress = rpm / rpm_max
-    offset = rpm_max * 0.6
+    offset = rpm_max * 0.8 / rpm_max
     shift_min = 0.9
     shift_max = 0.95
+    cube_len = int(APP_WIDTH / 40)
 
-    cube_len = (APP_WIDTH / 40)
-
+    # shift steering wheel lights
     if progress > offset:
-        for i in range(int((progress - offset) / (1 - offset)) * 10):
-            if i < 1:
-                ac.glColor4f(0, 0.7, 0, 1.0)
+        for i in range(int((progress - offset) / (1 - offset) * 10)):
+            if i < 2:
+                acbib.GL.rect(i * int(APP_WIDTH / 10) + (cube_len / 2), -cube_len, int(APP_WIDTH / 10) - cube_len,
+                              cube_len, acbib.Color(0, 0.9, 0, 1))
             elif i < 7:
-                ac.glColor4f(0.7, 0, 0, 1.0)
+                acbib.GL.rect(i * int(APP_WIDTH / 10) + (cube_len / 2), -cube_len, int(APP_WIDTH / 10) - cube_len,
+                              cube_len, acbib.Color(1, 1, 0, 1))
             else:
-                ac.glColor4f(0, 0.2, 0.9, 1.0)
-            ac.glQuad(i * (APP_WIDTH / 10) + (cube_len / 2), cube_len, (APP_WIDTH / 10) - cube_len, cube_len)
+                acbib.GL.rect(i * int(APP_WIDTH / 10) + (cube_len / 2), -cube_len, int(APP_WIDTH / 10) - cube_len,
+                              cube_len, acbib.Color(0, 0.2, 0.9, 1))
 
-    ac.glColor4f(0.6, 0.6, 0.6, 1.0)
-    ac.glQuad(0, APP_HEIGHT, APP_WIDTH, 6)
+    # shift progress background
+    acbib.GL.rect(0, APP_HEIGHT, APP_WIDTH, 6, acbib.Color(0.6, 0.6, 0.6, 1))
 
+    # shift progress indicator
     if acbib.ACCAR.getRPM() < acbib.ACCAR.getRPMMax() * shift_min:
-        ac.glColor4f(0, 0.9, 0, 1.0)
+        acbib.GL.rect(0, APP_HEIGHT, progress * APP_WIDTH, 6, acbib.Color(0, 0.9, 0, 1.0))
     elif acbib.ACCAR.getRPMMax() * shift_min <= acbib.ACCAR.getRPM() <= acbib.ACCAR.getRPMMax() * shift_max:
-        ac.glColor4f(0.9, 0.9, 0, 1.0)
-        ac.glQuad(-10, 0, 10, APP_HEIGHT + 6)
-        ac.glQuad(APP_WIDTH, 0, 10, APP_HEIGHT + 6)
+        acbib.GL.rect(0, APP_HEIGHT, progress * APP_WIDTH, 6, acbib.Color(0.9, 0.9, 0, 1.0))
+        acbib.GL.rect(-10, 0, 10, APP_HEIGHT + 6, acbib.Color(0.9, 0.9, 0, 1.0))
+        acbib.GL.rect(APP_WIDTH, 0, 10, APP_HEIGHT + 6, acbib.Color(0.9, 0.9, 0, 1.0))
     elif acbib.ACCAR.getRPM() > acbib.ACCAR.getRPMMax() * shift_max:
-        ac.glColor4f(0.9, 0, 0, 1.0)
-
-    ac.glQuad(0, APP_HEIGHT, progress * APP_WIDTH, 6)
+        acbib.GL.rect(0, APP_HEIGHT, progress * APP_WIDTH, 6, acbib.Color(0.9, 0, 0, 1.0))
 
 
 def acShutdown():

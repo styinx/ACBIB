@@ -221,8 +221,20 @@ class ACCAR:
         return info.physics.fuel
 
     @staticmethod
-    def getTyreWear(tyre=0):
+    def getMaxFuel():
+        return info.static.maxFuel
+
+    @staticmethod
+    def getTyreWearValue(tyre=0):
         return info.physics.tyreWear[tyre]
+
+    @staticmethod
+    def getTyreWear(tyre=0):
+        return (ACCAR.getTyreWearValue(tyre) - 94) * 16.6
+
+    @staticmethod
+    def getTyreCompund():
+        return info.graphics.tyreCompound
 
     @staticmethod
     def getTyreTemp(tyre=0, loc="m"):
@@ -242,6 +254,33 @@ class ACCAR:
     @staticmethod
     def getBrakeTemperature(tyre=0):
         return info.physics.brakeTemp[tyre]
+
+
+class GL:
+    @staticmethod
+    def rect(x, y, w, h, color=Color(1, 1, 1, 1), filled=True):
+        ac.glColor4f(color.r, color.g, color.b, color.a)
+        if filled:
+            ac.glQuad(x, y, w, h)
+        else:
+            ac.glBegin(1)
+            ac.glVertex2f(x, y)
+            ac.glVertex2f(x + w, y)
+            ac.glVertex2f(x + w, y)
+            ac.glVertex2f(x + w, y + h)
+            ac.glVertex2f(x + w, y + h)
+            ac.glVertex2f(x, y + h)
+            ac.glVertex2f(x, y + h)
+            ac.glVertex2f(x, y)
+            ac.glEnd()
+
+    @staticmethod
+    def line(x1, y1, x2, y2, color=Color(1, 1, 1, 1)):
+        ac.glColor4f(color.r, color.g, color.b, color.a)
+        ac.glBegin(1)
+        ac.glVertex2f(x1, y1)
+        ac.glVertex2f(x2, y2)
+        ac.glEnd()
 
 
 class App:
@@ -320,7 +359,30 @@ class Object:
     def setFontColor(self, color):
         self.font_color = color
         ac.setFontColor(self.obj, color.r, color.g, color.b, color.a)
-        
-class Box:
-    def __init__(self, layout=0):
-        
+
+
+# class Object:
+#     def __init__(self, parent=None):
+#         self.parent = parent
+#         self.geometry = (0, 0, 0, 0)
+#         self.size = (0, 0, 0, 0)
+#
+#     def setGeometry(self, geo):
+#         if isinstance(geo, tuple) and len(geo) == 4:
+#             self.geometry = geo
+#
+#     def setSize(self, size):
+#         if isinstance(size, tuple) and len(size) == 4:
+#             self.size = size
+#
+#
+# class Box(Object):
+#     def __init__(self, parent=None, orientation=0):
+#         super().__init__(parent)
+#         self.parent = parent
+#         self.orientation = orientation
+#         self.objects = []
+#
+#     def add(self, obj):
+#         self.objects.append(obj)
+

@@ -14,5 +14,5 @@ Assetto Corsa App that shows all relevant car and race data:
 - lap delta
 
 ![Overview](https://github.com/styinx/ACBIB/blob/master/img_0.jpg)
-![Shift indicators](https://github.com/styinx/ACBIB/blob/master/img_0.jpg)
-![Lap delta](https://github.com/styinx/ACBIB/blob/master/img_0.jpg)
+![Shift indicators](https://github.com/styinx/ACBIB/blob/master/img_1.jpg)
+![Lap delta](https://github.com/styinx/ACBIB/blob/master/img_2.jpg)
