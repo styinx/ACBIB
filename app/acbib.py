@@ -320,3 +320,7 @@ class Object:
     def setFontColor(self, color):
         self.font_color = color
         ac.setFontColor(self.obj, color.r, color.g, color.b, color.a)
+        
+class Box:
+    def __init__(self, layout=0):
+        
