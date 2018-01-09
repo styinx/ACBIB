@@ -119,6 +119,10 @@ class ACCAR:
         return ac.getFocusedCar()
 
     @staticmethod
+    def getCarDamage():
+        return info.static.carDamage
+
+    @staticmethod
     def getPrevCarDiffTime(formatted=False):
         time = 0
         dist = 0
