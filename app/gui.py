@@ -14,6 +14,67 @@ class Color:
 
 
 '''
+# Wrapper class for gl primitives
+'''
+
+
+class GL:
+    @staticmethod
+    def rect(x, y, w, h, color=Color(1, 1, 1, 1), filled=True):
+        ac.glColor4f(color.r, color.g, color.b, color.a)
+        if filled:
+            ac.glQuad(x, y, w, h)
+        else:
+            ac.glBegin(1)
+            ac.glVertex2f(x, y)
+            ac.glVertex2f(x + w, y)
+            ac.glVertex2f(x + w, y)
+            ac.glVertex2f(x + w, y + h)
+            ac.glVertex2f(x + w, y + h)
+            ac.glVertex2f(x, y + h)
+            ac.glVertex2f(x, y + h)
+            ac.glVertex2f(x, y)
+            ac.glEnd()
+
+    @staticmethod
+    def line(x1, y1, x2, y2, color=Color(1, 1, 1, 1)):
+        ac.glColor4f(color.r, color.g, color.b, color.a)
+        ac.glBegin(1)
+        ac.glVertex2f(x1, y1)
+        ac.glVertex2f(x2, y2)
+        ac.glEnd()
+
+
+'''
+# Wrapper class for the main app
+'''
+
+
+class App:
+    def __init__(self, app_name, app_title, w, h, bg=Color(0, 0, 0, 0.8)):
+        self.app_name = app_name
+        self.app_title = app_title
+        self.w = w
+        self.h = h
+        self.bg = bg
+        self.size = (w, h)
+
+        self.app = ac.newApp(app_name)
+        ac.setTitle(self.app, app_title)
+        ac.setSize(self.app, w, h)
+        ac.setIconPosition(self.app, 100000, 0)
+        ac.setTitlePosition(self.app, 100000, 0)
+        ac.drawBorder(self.app, 0)
+        ac.drawBackground(self.app, (bg.a > 0))
+        ac.setBackgroundColor(self.app, bg.r, bg.g, bg.b)
+        ac.setBackgroundOpacity(self.app, bg.a)
+
+    def render(self):
+        ac.setBackgroundColor(self.app, self.bg.r, self.bg.g, self.bg.b)
+        ac.setBackgroundOpacity(self.app, self.bg.a)
+
+
+'''
 # All visualized object inherit this class
 '''
 
@@ -24,9 +85,12 @@ class Object:
         self.parent = parent
         self.pos = (0, 0)
         self.size = (0, 0)
+        self.visible = True
         self.text = ""
-        self.font_size = 0
+        self.font_size = 10
+        self.font_ratio = .5
         self.font_color = Color(1, 1, 1, 1)
+        self.background_texture = None
         self.background_color = Color(0, 0, 0, 0)
         self.border = False
         self.border_color = Color(0, 0, 0, 0)
@@ -40,7 +104,7 @@ class Object:
         return self.pos
 
     @pos.setter
-    def pos(self, x, y):
+    def pos(self, (x, y)):
         if isinstance(x, int) and isinstance(y, int):
             if self.parent is not None:
                 if x >= self.parent.pos[0] and y >= self.parent.pos[1]:
@@ -53,15 +117,25 @@ class Object:
         return self.size
 
     @size.setter
-    def size(self, w, h):
+    def size(self, (w, h)):
         if isinstance(w, int) and isinstance(h, int):
             if self.parent is not None:
                 if self.pos[0] + w <= self.parent.size[0] and self.pos[1] + h <= self.parent.size[1]:
                     self.size = (w, h)
-                    self.font_size = min(self.font_size, h)
+                    self.font_size = min(self.getFontSizeFromText(), h)
             else:
                 self.size = (w, h)
-                self.font_size = min(self.font_size, h)
+                self.font_size = min(self.getFontSizeFromText(), h)
+
+    @property
+    def visible(self):
+        return self.visible
+
+    @visible.setter
+    def visible(self, visible):
+        if isinstance(visible, bool):
+            self.visible = visible
+            ac.setVisible(visible)
 
     @property
     def font_size(self):
@@ -74,6 +148,16 @@ class Object:
             ac.setFontSize(self.ac_obj, self.font_size)
 
     @property
+    def font_ratio(self):
+        return self.font_ratio
+
+    @font_ratio.setter
+    def font_ratio(self, font_ratio):
+        if isinstance(font_ratio, int):
+            self.font_ratio = min(font_ratio, self.size[1])
+            ac.setFontSize(self.ac_obj, self.font_size)
+
+    @property
     def font_color(self):
         return self.font_color
 
@@ -81,6 +165,17 @@ class Object:
     def font_color(self, font_color):
         if isinstance(font_color, Color):
             self.font_color = font_color
+
+    @property
+    def background_texture(self):
+        return self.background_texture
+
+    @background_texture.setter
+    def background_texture(self, tex):
+        if isinstance(tex, str):
+            self.background_texture = ac.newTexture(tex)
+        else:
+            self.background_texture = tex
 
     @property
     def background_color(self):
@@ -109,6 +204,12 @@ class Object:
         if isinstance(border_color, Color):
             self.border_color = border_color
 
+    def getTextWidth(self):
+        return len(self.text) * (self.font_size * self.font_ratio)
+
+    def getFontSizeFromText(self):
+        return self.size[0] / len(self.text) * (1 + self.font_ratio)
+
     '''
     # Update method
     # updates the object, manages size, position, text, ...
@@ -121,7 +222,8 @@ class Object:
     # should only be called from the render update function
     '''
     def render(self):
-        acbib.GL.rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
+        if self.visible:
+            GL.rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
 
 
 '''
@@ -138,6 +240,7 @@ class Box(Object):
 
     def add(self, obj):
         self.objects.append(obj)
+        self.update()
 
     def update(self):
         for obj in self.objects:
@@ -179,6 +282,19 @@ class Label(Object):
         self.text = text
 
 
+class Button(Object):
+    def __init__(self, parent, text=""):
+        Object.__init__(parent)
+
+        ac.addButton(self.ac_obj, text)
+        self.text = text
+        self.callback = None
+
+    def onClick(self, callback):
+        self.callback = callback
+        ac.addOnClickedListener(self.ac_obj, callback)
+
+
 class ProgressBar(Object):
     def __index__(self, parent, progress_range=(0, 100), progress=0):
         Object.__init__(parent)
@@ -210,5 +326,5 @@ class ProgressBar(Object):
             self.progress = progress
 
     def render(self):
-        acbib.GL.rect(self.pos[0], self.pos[1], self.progress, self.size[1], self.background_color, True)
-        acbib.GL.rect(self.pos[0], self.pos[1], self.size[0], self.size[1], self.border_color, False)
+        GL.rect(self.pos[0], self.pos[1], self.progress, self.size[1], self.background_color, True)
+        GL.rect(self.pos[0], self.pos[1], self.size[0], self.size[1], self.border_color, False)

@@ -28,7 +28,9 @@ settings["Display"]["APP_POS_X"] = 0
 settings["Display"]["APP_POS_Y"] = 0
 settings["Display"]["APP_WIDTH"] = 650
 settings["Display"]["APP_HEIGHT"] = 160
-settings["Display"]["modules"] = "gear,speed,rpm,current_lap"
+settings["Display"]["modules"] = "engine,timers,driver,car"
+settings["Display"]["grid"] = "7,3"
+settings["Display"]["engine"] = "3,1,3,3"
 
 settings["Preferences"]["BACKGROUND"] = "(0.2,0.2,0.2,0.8)"
 settings["Preferences"]["FONT_COLOR"] = "(1,1,1,1)"

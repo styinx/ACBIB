@@ -42,7 +42,25 @@ def formatGear(gear):
         return str(gear - 1)
 
 
+class ACPLAYER:
+    @staticmethod
+    def getPlayerNickname():
+        return info.static.playerNick
+
+    @staticmethod
+    def getPlayerFirstname():
+        return info.static.playerName
+
+    @staticmethod
+    def getPlayerLastname():
+        return info.static.playerSurname
+
+
 class ACRACE:
+    @staticmethod
+    def getSessionType():
+        return info.graphics.session
+
     @staticmethod
     def getRaceTimeLeft():
         return info.graphics.sessionTimeLeft
@@ -221,6 +239,10 @@ class ACCAR:
         return ac.isCarInPitline(car) or ac.isCarInPit(car)
 
     @staticmethod
+    def isAIDriven():
+        return info.physics.isAIControlled
+
+    @staticmethod
     def getFuel():
         return info.physics.fuel
 
@@ -363,30 +385,3 @@ class Object:
     def setFontColor(self, color):
         self.font_color = color
         ac.setFontColor(self.obj, color.r, color.g, color.b, color.a)
-
-
-# class Object:
-#     def __init__(self, parent=None):
-#         self.parent = parent
-#         self.geometry = (0, 0, 0, 0)
-#         self.size = (0, 0, 0, 0)
-#
-#     def setGeometry(self, geo):
-#         if isinstance(geo, tuple) and len(geo) == 4:
-#             self.geometry = geo
-#
-#     def setSize(self, size):
-#         if isinstance(size, tuple) and len(size) == 4:
-#             self.size = size
-#
-#
-# class Box(Object):
-#     def __init__(self, parent=None, orientation=0):
-#         super().__init__(parent)
-#         self.parent = parent
-#         self.orientation = orientation
-#         self.objects = []
-#
-#     def add(self, obj):
-#         self.objects.append(obj)
-
