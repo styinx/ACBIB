@@ -104,7 +104,8 @@ class Object:
         return self.pos
 
     @pos.setter
-    def pos(self, (x, y)):
+    def pos(self, pos):
+        x, y = pos
         if isinstance(x, int) and isinstance(y, int):
             if self.parent is not None:
                 if x >= self.parent.pos[0] and y >= self.parent.pos[1]:
@@ -117,7 +118,8 @@ class Object:
         return self.size
 
     @size.setter
-    def size(self, (w, h)):
+    def size(self, size):
+        w, h = size
         if isinstance(w, int) and isinstance(h, int):
             if self.parent is not None:
                 if self.pos[0] + w <= self.parent.size[0] and self.pos[1] + h <= self.parent.size[1]:
@@ -312,7 +314,8 @@ class ProgressBar(Object):
         return self.progress_range
 
     @progress_range.setter
-    def progress_range(self, (p_min, p_max)):
+    def progress_range(self, p_range):
+        p_min, p_max = p_range
         if isinstance(p_min, int) and isinstance(p_max, int):
             self.progress_range = (p_min, p_max)
 

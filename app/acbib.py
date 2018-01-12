@@ -138,7 +138,7 @@ class ACCAR:
 
     @staticmethod
     def getCarDamage():
-        return info.static.carDamage
+        return info.physics.carDamage
 
     @staticmethod
     def getPrevCarDiffTime(formatted=False):

@@ -119,6 +119,11 @@ def acUpdate(deltaT):
     car_tyre_4.setText("{:3.1f}°C\n{:3.1f} psi\n{:3.1f}%".format(acbib.ACCAR.getTyreTemp(3, "c"),
                                                                  acbib.ACCAR.getTyrePressure(3),
                                                                  acbib.ACCAR.getTyreWear(3)))
+    
+    st = ""
+    for i in acbib.ACCAR.getCarDamage():
+        st = st + str(i) + " "
+    ac.console(st)
 
 
 def glRender(deltaT):
@@ -149,7 +154,7 @@ def glRender(deltaT):
 
     # shift steering wheel lights
     if progress > offset:
-        for i in range(int((progress - offset) / (1 - offset) * 10)):
+        for i in range(min(10, int((progress - offset) / (1 - offset) * 10))):
             if i < 2:
                 acbib.GL.rect(i * int(APP_WIDTH / 10) + (cube_len / 2), -cube_len, int(APP_WIDTH / 10) - cube_len,
                               cube_len, acbib.Color(0, 0.9, 0, 1))
@@ -172,6 +177,12 @@ def glRender(deltaT):
         acbib.GL.rect(APP_WIDTH, 0, 10, APP_HEIGHT + 6, acbib.Color(0.9, 0.9, 0, 1.0))
     elif acbib.ACCAR.getRPM() > acbib.ACCAR.getRPMMax() * shift_max:
         acbib.GL.rect(0, APP_HEIGHT, progress * APP_WIDTH, 6, acbib.Color(0.9, 0, 0, 1.0))
+        
+    # track progress
+    track_progress = acbib.ACCAR.getLocation()
+    
+    if track_progress > 0:
+        acbib.GL.rect(0, APP_HEIGHT + 6, track_progress * APP_WIDTH, 6, acbib.Color(0, 0.5, 0.9, 1))
 
 
 def acShutdown():
