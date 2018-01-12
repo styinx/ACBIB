@@ -24,7 +24,11 @@ def acMain(ac_version):
     global car_tyre_1, car_tyre_2, car_tyre_3, car_tyre_4
 
     app = acbib.App("ACBIB", "", APP_WIDTH, APP_HEIGHT, acbib.Color(0, 0, 0, 0.8))
+
+    test = acbib.Object(app, "", font_medium)
+
     ac.addRenderCallback(app.getApp(), glRender)
+    #ac.addRenderCallback(test.obj, glRender)
 
     lap_count = acbib.Object(app, "Label", font_medium)
     lap_current = acbib.Object(app, "Label", font_medium)
@@ -104,7 +108,7 @@ def acUpdate(deltaT):
     car_speed.setText("{:3.0f} km/h".format(acbib.ACCAR.getSpeed(0)))
     car_gear.setText("{}".format(acbib.ACCAR.getGear(0)))
     car_rpm.setText("{:4.0f} rpm".format(acbib.ACCAR.getRPM(0)))
-    car_pos.setText("Pos:   {}/{}".format(acbib.ACCAR.getPosition(0), acbib.ACRACE.getCarsCount()))
+    car_pos.setText("Pos:   {}/{}".format(acbib.ACCAR.getPosition(0), acbib.ACSESSION.getCarsCount()))
     car_fuel.setText("Fuel: {:3.0f} l".format(acbib.ACCAR.getFuel()))
 
     car_tyre_1.setText("{:3.1f}°C\n{:3.1f} psi\n{:3.1f}%".format(acbib.ACCAR.getTyreTemp(0, "c"),

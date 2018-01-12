@@ -46,35 +46,6 @@ class GL:
 
 
 '''
-# Wrapper class for the main app
-'''
-
-
-class App:
-    def __init__(self, app_name, app_title, w, h, bg=Color(0, 0, 0, 0.8)):
-        self.app_name = app_name
-        self.app_title = app_title
-        self.w = w
-        self.h = h
-        self.bg = bg
-        self.size = (w, h)
-
-        self.app = ac.newApp(app_name)
-        ac.setTitle(self.app, app_title)
-        ac.setSize(self.app, w, h)
-        ac.setIconPosition(self.app, 100000, 0)
-        ac.setTitlePosition(self.app, 100000, 0)
-        ac.drawBorder(self.app, 0)
-        ac.drawBackground(self.app, (bg.a > 0))
-        ac.setBackgroundColor(self.app, bg.r, bg.g, bg.b)
-        ac.setBackgroundOpacity(self.app, bg.a)
-
-    def render(self):
-        ac.setBackgroundColor(self.app, self.bg.r, self.bg.g, self.bg.b)
-        ac.setBackgroundOpacity(self.app, self.bg.a)
-
-
-'''
 # All visualized object inherit this class
 '''
 
@@ -83,6 +54,7 @@ class Object:
     def __init__(self, parent=None):
         self.ac_obj = None
         self.parent = parent
+        self.child = None
         self.pos = (0, 0)
         self.size = (0, 0)
         self.visible = True
@@ -96,6 +68,7 @@ class Object:
         self.border_color = Color(0, 0, 0, 0)
 
         if parent is not None:
+            parent.child = self
             self.pos = parent.pos
             self.size = parent.size
 
@@ -206,9 +179,19 @@ class Object:
         if isinstance(border_color, Color):
             self.border_color = border_color
 
-    def getTextWidth(self):
-        return len(self.text) * (self.font_size * self.font_ratio)
+    '''
+    # Calculates and returns the text width either of the given text or the saved
+    # text in the object
+    '''
+    def getTextWidth(self, text):
+        if text != "":
+            return len(text) * (self.font_size * self.font_ratio)
+        else:
+            return len(self.text) * (self.font_size * self.font_ratio)
 
+    '''
+    # Calculates and returns the ideal font size depending on the maximum width of the object
+    '''
     def getFontSizeFromText(self):
         return self.size[0] / len(self.text) * (1 + self.font_ratio)
 
@@ -226,6 +209,39 @@ class Object:
     def render(self):
         if self.visible:
             GL.rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
+
+        if self.child is not None:
+            self.child.render()
+
+
+'''
+# Wrapper class for the main app
+'''
+
+
+class App(Object):
+    def __init__(self, app_name, app_title, w, h, bg=Color(0, 0, 0, 0.8)):
+        Object.__init__(None)
+        self.app_name = app_name
+        self.app_title = app_title
+        self.w = w
+        self.h = h
+        self.bg = bg
+        self.size = (w, h)
+
+        self.app = ac.newApp(app_name)
+        ac.setTitle(self.app, app_title)
+        ac.setSize(self.app, w, h)
+        ac.setIconPosition(self.app, 100000, 0)
+        ac.setTitlePosition(self.app, 100000, 0)
+        ac.drawBorder(self.app, 0)
+        ac.drawBackground(self.app, (bg.a > 0))
+        ac.setBackgroundColor(self.app, bg.r, bg.g, bg.b)
+        ac.setBackgroundOpacity(self.app, bg.a)
+
+    def render(self):
+        ac.setBackgroundColor(self.app, self.bg.r, self.bg.g, self.bg.b)
+        ac.setBackgroundOpacity(self.app, self.bg.a)
 
 
 '''
@@ -329,5 +345,7 @@ class ProgressBar(Object):
             self.progress = progress
 
     def render(self):
+        Object.render()
+
         GL.rect(self.pos[0], self.pos[1], self.progress, self.size[1], self.background_color, True)
         GL.rect(self.pos[0], self.pos[1], self.size[0], self.size[1], self.border_color, False)

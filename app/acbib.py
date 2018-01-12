@@ -56,10 +56,18 @@ class ACPLAYER:
         return info.static.playerSurname
 
 
-class ACRACE:
+class ACSESSION:
     @staticmethod
     def getSessionType():
         return info.graphics.session
+
+    @staticmethod
+    def getSessionStatus():
+        return info.graphics.status
+
+    @staticmethod
+    def isTimedRace():
+        return info.static.isTimedRace
 
     @staticmethod
     def getRaceTimeLeft():
@@ -68,6 +76,10 @@ class ACRACE:
     @staticmethod
     def getTrackLength():
         return ac.getTrackLength(0)
+
+    @staticmethod
+    def getTrackName():
+        return ac.getTrackName(0)
 
     @staticmethod
     def getCarsCount():
@@ -112,6 +124,14 @@ class ACLAP:
             return "--:--"
 
     @staticmethod
+    def getSplit():
+        return info.graphics.split
+
+    @staticmethod
+    def getSplits(car=0):
+        return ac.getLastSplits(car, )
+
+    @staticmethod
     def getLap(car=0):
         return ac.getCarState(car, acsys.CS.LapCount) + 1
 
@@ -121,7 +141,7 @@ class ACLAP:
 
     @staticmethod
     def isLapInvalidated(car=0):
-        return ac.getCarState(car, acsys.CS.LapInvalidated) or info.physics.numberOfTyresOut > 2 or ACCAR.isInPit()
+        return ac.getCarState(car, acsys.CS.LapInvalidated) or ACCAR.getTyresOut() > 2 or ACCAR.isInPit()
 
     @staticmethod
     def getLaps():
@@ -129,6 +149,14 @@ class ACLAP:
             return info.graphics.numberOfLaps
         else:
             return "-"
+
+    @staticmethod
+    def lastSectorTime():
+        return info.graphics.lastSectorTime
+
+    @staticmethod
+    def getSectors():
+        return info.static.sectorCount
 
 
 class ACCAR:
@@ -144,11 +172,11 @@ class ACCAR:
     def getPrevCarDiffTime(formatted=False):
         time = 0
         dist = 0
-        track_len = ACRACE.getTrackLength()
+        track_len = ACSESSION.getTrackLength()
         lap = ACLAP.getLap(0)
         pos = ACCAR.getLocation(0)
 
-        for car in range(ACRACE.getCarsCount()):
+        for car in range(ACSESSION.getCarsCount()):
             if ACCAR.getPosition(car) == ACCAR.getPosition(0) - 1:
                 lap_next = ACLAP.getLap(car)
                 pos_next = ACCAR.getLocation(car)
@@ -175,11 +203,11 @@ class ACCAR:
     def getNextCarDiffTime(formatted=False):
         time = 0
         dist = 0
-        track_len = ACRACE.getTrackLength()
+        track_len = ACSESSION.getTrackLength()
         lap = ACLAP.getLap(0)
         pos = ACCAR.getLocation(0)
 
-        for car in range(ACRACE.getCarsCount()):
+        for car in range(ACSESSION.getCarsCount()):
             if ACCAR.getPosition(car) == ACCAR.getPosition(0) + 1:
                 lap_next = ACLAP.getLap(car)
                 pos_next = ACCAR.getLocation(car)
@@ -201,6 +229,34 @@ class ACCAR:
                 return "-" + formatTime(int(time * 1000))
             else:
                 return "-{:3.3f}".format(time)
+
+    @staticmethod
+    def getGas():
+        return info.physics.gas
+
+    @staticmethod
+    def getBrake():
+        return info.physics.brake
+
+    @staticmethod
+    def hasDRS():
+        return info.static.hasDRS
+
+    @staticmethod
+    def DRSEnabled():
+        return info.physics.drsEnabled
+
+    @staticmethod
+    def hasERS():
+        return info.static.hasERS
+
+    @staticmethod
+    def hasKERS():
+        return info.static.hasKERS
+
+    @staticmethod
+    def ABS():
+        return info.physics.abs
 
     @staticmethod
     def getSpeed(car=0, unit="kmh"):
@@ -251,12 +307,20 @@ class ACCAR:
         return info.static.maxFuel
 
     @staticmethod
+    def getTyresOut():
+        return info.physics.numberOfTyresOut
+
+    @staticmethod
     def getTyreWearValue(tyre=0):
         return info.physics.tyreWear[tyre]
 
     @staticmethod
     def getTyreWear(tyre=0):
         return (ACCAR.getTyreWearValue(tyre) - 94) * 16.6
+
+    @staticmethod
+    def getTyreDirtyLevel(tyre=0):
+        return info.physics.tyreDirtyLevel
 
     @staticmethod
     def getTyreCompund():
