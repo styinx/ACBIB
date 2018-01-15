@@ -1,4 +1,4 @@
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 import os
 
 
@@ -13,9 +13,7 @@ class Settings(ConfigParser):
         if os.path.isfile(os.path.abspath(filename)):
             self.read(filename)
 
-        for sec in self.sections():
-            for op in self.options(sec):
-                self.dict[sec][op] = self.get(sec, op)
+        self.update()
 
     def update(self):
         for sec in self.sections():

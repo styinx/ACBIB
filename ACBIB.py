@@ -3,6 +3,7 @@
 import ac
 import math
 import app.acbib as acbib
+import app.gui as gui
 
 # global settings
 
@@ -23,74 +24,71 @@ def acMain(ac_version):
     global car_speed, car_gear, car_rpm, car_pos, car_fuel, car_prev, car_next
     global car_tyre_1, car_tyre_2, car_tyre_3, car_tyre_4
 
-    app = acbib.App("ACBIB", "", APP_WIDTH, APP_HEIGHT, acbib.Color(0, 0, 0, 0.8))
+    app = gui.App("ACBIB", "", APP_WIDTH, APP_HEIGHT, acbib.Color(0, 0, 0, 0.8))
+    app.setRenderCallback(glRender)
 
-    test = acbib.Object(app, "", font_medium)
+    grid = gui.Grid(app, 5, 5)
+    #ac.console("{}{}".format(self.pos[0], self.pos[1]))
 
-    ac.addRenderCallback(app.getApp(), glRender)
-    #ac.addRenderCallback(test.obj, glRender)
+    lap_count = gui.Label(None, app)
+    car_pos = gui.Label(None, app)
+    car_fuel = gui.Label(None, app)
 
-    lap_count = acbib.Object(app, "Label", font_medium)
-    lap_current = acbib.Object(app, "Label", font_medium)
-    lap_last = acbib.Object(app, "Label", font_medium)
-    lap_best = acbib.Object(app, "Label", font_medium, acbib.Color(0, 1, 0, 1))
-    lap_delta = acbib.Object(app, "Label", font_medium, acbib.Color(0, 1, 0, 1))
+    lap_best = gui.Label(None, app)
+    lap_last = gui.Label(None, app)
+    lap_current = gui.Label(None, app)
 
-    car_speed = acbib.Object(app, "Label", font_medium)
-    car_gear = acbib.Object(app, "Label", font_huge)
-    car_rpm = acbib.Object(app, "Label", font_medium)
-    car_pos = acbib.Object(app, "Label", font_medium)
-    car_fuel = acbib.Object(app, "Label", font_medium)
-    car_prev = acbib.Object(app, "Label", font_medium, acbib.Color(1, 0, 0, 1))
-    car_next = acbib.Object(app, "Label", font_medium, acbib.Color(0, 1, 0, 1))
-    car_tyre_1 = acbib.Object(app, "Label", font_small)
-    car_tyre_2 = acbib.Object(app, "Label", font_small)
-    car_tyre_3 = acbib.Object(app, "Label", font_small)
-    car_tyre_4 = acbib.Object(app, "Label", font_small)
+    car_prev = gui.Label(None, app)
+    lap_delta = gui.Label(None, app)
+    car_next = gui.Label(None, app)
 
-    lap_count.setPosition(0, 0)
-    car_pos.setPosition(0, 30)
-    car_fuel.setPosition(0, 60)
+    car_speed = gui.Label(None, app)
+    car_gear = gui.Label(None, app)
+    car_rpm = gui.Label(None, app)
 
-    lap_best.setPosition(120, 0)
-    lap_last.setPosition(120, 30)
-    lap_current.setPosition(120, 60)
+    car_rpm.setRenderCallback(gl)
 
-    car_gear.setPosition(265, 0)
-    car_speed.setPosition(320, 20)
-    car_rpm.setPosition(320, 50)
+    car_tyre_1 = gui.Label(None, app)
+    car_tyre_2 = gui.Label(None, app)
+    car_tyre_3 = gui.Label(None, app)
+    car_tyre_4 = gui.Label(None, app)
 
-    car_prev.setPosition(10, 140)
-    lap_delta.setPosition(280, 140)
-    car_next.setPosition(510, 140)
+    grid.add(lap_count, 1, 1)
+    grid.add(car_pos, 1, 2)
+    grid.add(car_fuel, 1, 3)
+    
+    grid.add(lap_best, 2, 1)
+    grid.add(lap_last, 2, 2)
+    grid.add(lap_current, 2, 3)
 
-    car_tyre_1.setPosition(470, 0)
-    car_tyre_2.setPosition(530, 0)
-    car_tyre_3.setPosition(470, 70)
-    car_tyre_4.setPosition(530, 70)
+    grid.add(car_prev, 1, 5)
+    grid.add(lap_delta, 3, 5)
+    grid.add(car_next, 5, 5)
+
+    grid.add(car_speed, 3, 1)
+    grid.add(car_gear, 3, 2)
+    grid.add(car_rpm, 3, 3)
+
+    grid.add(car_tyre_1, 4, 1, 1, 2)
+    grid.add(car_tyre_2, 5, 1, 1, 2)
+    grid.add(car_tyre_3, 4, 3, 1, 2)
+    grid.add(car_tyre_4, 5, 3, 1, 2)
 
     return "ACBIB"
 
 
 def acUpdate(deltaT):
-    global invalid_lap
-
     global app
     global lap_current, lap_last, lap_best, lap_count, lap_delta
     global car_speed, car_gear, car_rpm, car_pos, car_fuel, car_prev, car_next
     global car_tyre_1, car_tyre_2, car_tyre_3, car_tyre_4
 
-    app.update()
+    app.render()
 
-    if acbib.ACLAP.getCurrentLapTime() <= 1000:
-        invalid_lap = False
+    lap_count.setText("Lap: {}/{}".format(acbib.ACLAP.getLap(0), acbib.ACLAP.getLaps()))
+    car_pos.setText("Pos: {}/{}".format(acbib.ACCAR.getPosition(0), acbib.ACSESSION.getCarsCount()))
+    car_fuel.setText("Fuel: {:3.0f} l".format(acbib.ACCAR.getFuel()))
 
-    if invalid_lap:
-        lap_current.setFontColor(acbib.Color(1, 0, 0, 1))
-    else:
-        lap_current.setFontColor(acbib.Color(1, 1, 1, 1))
-
-    lap_count.setText("Lap:   {}/{}".format(acbib.ACLAP.getLap(0), acbib.ACLAP.getLaps()))
     lap_current.setText("CUR: {}".format(acbib.ACLAP.getCurrentLap(0)))
     lap_last.setText("LST: {}".format(acbib.ACLAP.getLastLap(0)))
     lap_best.setText("BST: {}".format(acbib.ACLAP.getBestLap(0)))
@@ -108,8 +106,6 @@ def acUpdate(deltaT):
     car_speed.setText("{:3.0f} km/h".format(acbib.ACCAR.getSpeed(0)))
     car_gear.setText("{}".format(acbib.ACCAR.getGear(0)))
     car_rpm.setText("{:4.0f} rpm".format(acbib.ACCAR.getRPM(0)))
-    car_pos.setText("Pos:   {}/{}".format(acbib.ACCAR.getPosition(0), acbib.ACSESSION.getCarsCount()))
-    car_fuel.setText("Fuel: {:3.0f} l".format(acbib.ACCAR.getFuel()))
 
     car_tyre_1.setText("{:3.1f}°C\n{:3.1f} psi\n{:3.1f}%".format(acbib.ACCAR.getTyreTemp(0, "c"),
                                                                  acbib.ACCAR.getTyrePressure(0),
@@ -123,11 +119,10 @@ def acUpdate(deltaT):
     car_tyre_4.setText("{:3.1f}°C\n{:3.1f} psi\n{:3.1f}%".format(acbib.ACCAR.getTyreTemp(3, "c"),
                                                                  acbib.ACCAR.getTyrePressure(3),
                                                                  acbib.ACCAR.getTyreWear(3)))
-    
-    st = ""
-    for i in acbib.ACCAR.getCarDamage():
-        st = st + str(i) + " "
-    ac.console(st)
+
+
+def gl(delta):
+    acbib.GL.rect(0, 120, 200, 100, acbib.Color(1, 1, 1, 1))
 
 
 def glRender(deltaT):
@@ -181,10 +176,10 @@ def glRender(deltaT):
         acbib.GL.rect(APP_WIDTH, 0, 10, APP_HEIGHT + 6, acbib.Color(0.9, 0.9, 0, 1.0))
     elif acbib.ACCAR.getRPM() > acbib.ACCAR.getRPMMax() * shift_max:
         acbib.GL.rect(0, APP_HEIGHT, progress * APP_WIDTH, 6, acbib.Color(0.9, 0, 0, 1.0))
-        
+
     # track progress
     track_progress = acbib.ACCAR.getLocation()
-    
+
     if track_progress > 0:
         acbib.GL.rect(0, APP_HEIGHT + 6, track_progress * APP_WIDTH, 6, acbib.Color(0, 0.5, 0.9, 1))
 

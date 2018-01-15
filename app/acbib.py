@@ -165,8 +165,17 @@ class ACCAR:
         return ac.getFocusedCar()
 
     @staticmethod
-    def getCarDamage():
-        return info.physics.carDamage
+    def getCarDamage(loc="front"):
+        if loc == "front":
+            return info.physics.carDamage[0]
+        elif loc == "rear":
+            return info.physics.carDamage[1]
+        elif loc == "left":
+            return info.physics.carDamage[2]
+        elif loc == "right":
+            return info.physics.carDamage[3]
+        else:
+            return info.physics.carDamage[4]
 
     @staticmethod
     def getPrevCarDiffTime(formatted=False):
