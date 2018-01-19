@@ -1,4 +1,6 @@
 import ac
+import app.acbib as acbib
+import math
 
 
 class Color:
@@ -46,7 +48,7 @@ class GL:
 '''
 
 
-class Object:
+class Object(object):
     def __init__(self, parent):
         self.ac_obj = 0
         self._parent = parent
@@ -60,12 +62,13 @@ class Object:
         self._font_ratio = 0.5
         self._font_color = Color(1, 1, 1, 1)
         self._background_texture = 0
+        self._background = False
         self._background_color = Color(0, 0, 0, 0)
         self._border = False
-        self._border_color = Color(0, 0, 0, 0)
+        self._border_color = Color(1, 1, 1, 1)
 
         if self._parent is not None:
-            self._parent.child = self
+            self._parent._child = self
             self.pos = self._parent.pos
             self.size = self._parent.size
 
@@ -102,8 +105,9 @@ class Object:
                 if not (self._pos[0] + _w <= self._parent.size[0] and self._pos[1] + _h <= self._parent.size[1]):
                     _w = self._parent.size[0]
                     _h = self._parent.size[1]
-                self._size = (_w, _h)
                 self._font_size = min(self.getFontSizeFromText(), _h)
+                self._size = (_w, _h)
+                ac.setFontSize(self.ac_obj, self._font_size)
 
     @property
     def visible(self):
@@ -145,10 +149,7 @@ class Object:
             self._font_color = font_color
 
         if self.ac_obj is not None:
-            ac.setFontColor(self.ac_obj, self.font_color.r, self.font_color.g, self.font_color.b, self.font_color.a)
-
-    def setFontColor(self, font_color):
-        self.font_color = font_color
+            ac.setFontColor(self.ac_obj, self._font_color.r, self._font_color.g, self._font_color.b, self._font_color.a)
 
     @property
     def background_texture(self):
@@ -199,16 +200,19 @@ class Object:
 
     def setTextAlignment(self, alignment="center"):
         if self.ac_obj is not None:
-            if alignment == "center" or alignment == "c":
-                self.pos = (self.pos[0] + self.size[0] / 2, self.pos[1])
-            if alignment == "right" or alignment == "r":
-                self.pos = (self.pos[0] + self.size[0], self.pos[1])
+            if alignment == "left":
+                ac.setPosition(self.ac_obj, self.pos[0], self.pos[1])
+            elif alignment == "center":
+                ac.setPosition(self.ac_obj, int(self.pos[0] + self.size[0] / 2), self.pos[1])
+            elif alignment == "right":
+                ac.setPosition(self.ac_obj, int(self.pos[0] + self.size[0]), self.pos[1])
             ac.setFontAlignment(self.ac_obj, alignment)
 
     '''
     # Calculates and returns the text width either of the given text or the saved
     # text in the object
     '''
+
     def getTextWidth(self, text):
         if text != "":
             return len(text) * (self._font_size * self._font_ratio)
@@ -218,31 +222,42 @@ class Object:
     '''
     # Calculates and returns the ideal font size depending on the maximum width of the object
     '''
+
     def getFontSizeFromText(self):
         return self._size[0] / max(1, len(self._text)) * (1 + self._font_ratio)
 
     '''
-    # Update method
     # updates the object, manages size, position, text, ...
     '''
+
     def update(self):
         i = 0
+
+    '''
+    # shows the object
+    '''
 
     def show(self):
         if self.ac_obj is not None:
             ac.setVisible(self.ac_obj, True)
+
+    '''
+    # hides the object
+    '''
 
     def hide(self):
         if self.ac_obj is not None:
             ac.setVisible(self.ac_obj, False)
 
     '''
-    # Render method
     # should only be called from the render update function
     '''
+
     def render(self):
         if self._visible:
-            GL.rect(self._pos[0], self._pos[1], self._size[0], self._size[1])
+            GL.rect(self._pos[0], self._pos[1], self._size[0], self._size[1], self.background_color)
+            if self._border:
+                GL.rect(self._pos[0], self._pos[1], self._size[0], self._size[1], self.border_color, False)
 
         if self._child is not None:
             self._child.render()
@@ -274,9 +289,15 @@ class App(Object):
         ac.setBackgroundColor(self.app, bg.r, bg.g, bg.b)
         ac.setBackgroundOpacity(self.app, bg.a)
 
-    def render(self):
+        self.background_color = bg
+
+    def update(self):
         ac.setBackgroundColor(self.app, self._bg.r, self._bg.g, self._bg.b)
         ac.setBackgroundOpacity(self.app, self._bg.a)
+
+    def render(self):
+        if self._child is not None:
+            self._child.render()
 
 
 '''
@@ -311,29 +332,40 @@ class Grid(Object):
         self._objects = [[0] * cols] * rows
         self._cols = max(1, cols)
         self._rows = max(1, rows)
-        self._cell_width = self._size[0] / self._cols
-        self._cell_height = self._size[1] / self._rows
+        self._cell_width = int(self._size[0] / self._cols)
+        self._cell_height = int(self._size[1] / self._rows)
 
-    def add(self, obj, x, y, w=1, h=1, alignment="c"):
+    def add(self, obj, x, y, w=1, h=1, alignment="left"):
         if isinstance(obj, Object):
-            if 1 <= x <= self._cols and 1 <= y <= self._rows:
-                #self._objects[x][y] = obj
-                obj.pos = ((x-1) * self._cell_width, (y-1) * self._cell_height)
-                obj.size = (self._cell_width * w, self._cell_height * h)
-                obj.setTextAlignment(alignment)
-                ac.setPosition(obj.ac_obj, obj.pos[0], obj.pos[1])
+            self._objects[x][y] = obj
+            x = max(0, min(x, self._cols - 1)) * self._cell_width
+            y = max(0, min(y, self._rows - 1)) * self._cell_height
+            w = max(1, min(w, self._cols)) * self._cell_width
+            h = max(1, min(h, self._cols)) * self._cell_height
+            obj.pos = (x, y)
+            obj.size = (w, h)
+            obj.setTextAlignment(alignment)
 
     def update(self):
-        self._cell_width = self._size[0] / self._cols
-        self._cell_height = self._size[1] / self._rows
+        self._cell_width = int(self._size[0] / self._cols)
+        self._cell_height = int(self._size[1] / self._rows)
+
+    def render(self):
+        Object.render(self)
+
+        for x in range(self._cols - 1):
+            for y in range(self._rows - 1):
+                if not isinstance(self._objects[x][y], int):
+                    self._objects[x][y].render()
 
 
 class Label(Object):
-    def __init__(self, parent, app_win, text=""):
+    def __init__(self, parent, app_win, text="", color=Color(1, 1, 1, 1)):
         super().__init__(parent)
 
         self.ac_obj = ac.addLabel(app_win.app, text)
         self._text = text
+        self.font_color = color
 
 
 class Button(Object):
@@ -386,3 +418,39 @@ class ProgressBar(Object):
 
         GL.rect(self._pos[0], self._pos[1], self._progress, self._size[1], self._background_color, True)
         GL.rect(self._pos[0], self._pos[1], self._size[0], self._size[1], self._border_color, False)
+
+
+# TODO dirty hack
+# adding to grid does not effect size or position
+class DiffBar(Object):
+    def __init__(self, parent, app, label=True):
+        super().__init__(parent)
+
+        self.label = label
+
+        if self.label:
+            self._label_text = Label(None, app, "")
+            self._label_text.pos = (300, 128)
+            self._label_text.setTextAlignment("center")
+
+    def render(self):
+        self._pos = (240, 96)
+        self._size = (120, 32)
+        delta = acbib.ACLAP.getLapDelta()
+        delta_val = 0
+        if delta != 0:
+            delta_val = max(0.0, math.log10(abs(delta) + 1)) * self._size[0] / 2
+
+        if delta > 0:
+            GL.rect(self._pos[0] + (self._size[0] / 2 - min(self.size[0] / 2, delta_val)), self._pos[1], min(self._size[0] / 2, delta_val), self.size[1], Color(0.9, 0, 0, 1))
+            if self.label:
+                self._label_text.setText("+{:3.3f}".format(delta))
+                self._label_text.font_color = Color(1, 0, 0, 1)
+        else:
+            GL.rect(self._pos[0] + self._size[0] / 2, self._pos[1], min(self._size[0] / 2, delta_val), self._size[1], Color(0, 0.9, 0, 1))
+            if self.label:
+                self._label_text.setText("+{:3.3f}".format(delta))
+                self._label_text.font_color = Color(0, 1, 0, 1)
+
+        GL.rect(self._pos[0], self._pos[1], self._size[0], self._size[1], Color(1, 1, 1, 1), False)
+        GL.line(self._pos[0] + self._size[0] / 2, self._pos[1], self._pos[0] + self._size[0] / 2, self._pos[1] + self._size[1])
