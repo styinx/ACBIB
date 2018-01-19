@@ -4,6 +4,7 @@ Assetto Corsa App that shows all relevant car and race data:
 - gear
 - rpm
 - shift indicators
+- lap progress
 - speed
 - fuel
 - tyres (temperature, pressure, wear)
